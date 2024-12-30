@@ -1,4 +1,5 @@
 ﻿#include <iostream>
+#include <iomanip> // 用於設置輸出格式
 #include <NIDAQmx.h>
 #include "INIReader.h"
 extern "C" {
@@ -115,6 +116,13 @@ int main(void) {
         const int bufferSize = sampleRate * numChannels; // 緩衝區大小
         std::vector<float64> data(bufferSize); // 動態分配緩衝區
 
+        // 輸出表頭
+        cout << left;
+        for (int ch = 1; ch <= numChannels; ++ch) {
+            cout << setw(10) << ("通道" + to_string(ch)) << "| ";
+        }
+        cout << endl;
+
         while (true) {
             int32 read; // 實際讀取到的樣本數量
 
@@ -131,10 +139,9 @@ int main(void) {
             ));
 
             // 輸出數據，每次輸出一整組
-            cout << "讀取到 " << read << " 組數據:" << endl;
             for (int i = 0; i < sampleRate; ++i) {
                 for (int ch = 0; ch < numChannels; ++ch) {
-                    cout << data[ch * sampleRate + i] << " ";
+                    cout << setw(10) << data[ch * sampleRate + i] << "| ";
                 }
                 cout << endl;
             }
