@@ -76,11 +76,10 @@ int main(void) {
                 if (measType == "Voltage") {
                     DAQmxErrChk(DAQmxCreateAIVoltageChan(taskHandle, physicalChannel.c_str(), "", DAQmx_Val_Cfg_Default, minVal, maxVal, DAQmx_Val_Volts, NULL));
                 }
-                /*else if (measType == "Current") {
-                    double shuntResistance = stod(ini_data[section]["AI.CurrentShunt.Resistance"]);
+                else if (measType == "Current") {
                     DAQmxErrChk(DAQmxCreateAICurrentChan(taskHandle, physicalChannel.c_str(), "", minVal, maxVal, DAQmx_Val_Amps, DAQmx_Val_Internal, shuntResistance, NULL));
                 }
-                else if (measType == "Accelerometer") {
+                /*else if (measType == "Accelerometer") {
                     double sensitivity = stod(ini_data[section]["AI.Accel.Sensitivity"]);
                     DAQmxErrChk(DAQmxCreateAIAccelChan(taskHandle, physicalChannel.c_str(), "", DAQmx_Val_PseudoDiff, minVal, maxVal, DAQmx_Val_mVoltsPerG, sensitivity, DAQmx_Val_Internal, NULL));
                 }*/
