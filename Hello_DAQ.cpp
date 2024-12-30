@@ -14,6 +14,14 @@ using namespace std;
 // 定義錯誤檢查
 #define DAQmxErrChk(functionCall) if (DAQmxFailed(error = (functionCall))) {DAQmxGetExtendedErrorInfo(errBuff, 2048); cerr << "DAQmx Error: " << errBuff << endl; goto Error;}
 
+// 將文字置中，並填充到指定寬度
+string center(const std::string& text, int width) {
+    int len = text.length();
+    if (width <= len) return text;
+    int padding = (width - len) / 2;
+    return std::string(padding, ' ') + text + std::string(width - len - padding, ' ');
+}
+
 // 回呼函式，用於解析 INI 檔案
 static int handler(void* user, const char* section, const char* name, const char* value) {
     // 將解析的 INI 資料儲存到 map 結構中
@@ -118,8 +126,9 @@ int main(void) {
 
         // 輸出表頭
         cout << left;
+        cout << "|";
         for (int ch = 1; ch <= numChannels; ++ch) {
-            cout << setw(10) << ("通道" + to_string(ch)) << "| ";
+            cout << center("通道" + to_string(ch), 12) << "| ";
         }
         cout << endl;
 
@@ -140,8 +149,9 @@ int main(void) {
 
             // 輸出數據，每次輸出一整組
             for (int i = 0; i < sampleRate; ++i) {
+                cout << "|";
                 for (int ch = 0; ch < numChannels; ++ch) {
-                    cout << setw(10) << data[ch * sampleRate + i] << "| ";
+                    cout << center(to_string(data[ch * sampleRate + i]), 12) << "| ";
                 }
                 cout << endl;
             }
