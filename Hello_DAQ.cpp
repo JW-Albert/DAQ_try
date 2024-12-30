@@ -48,7 +48,7 @@ int main(void) {
     int32 error = 0; // 儲存錯誤代碼
     TaskHandle taskHandle = 0; // 定義任務控制代碼
     char errBuff[2048] = { 0 }; // 儲存錯誤訊息的緩衝區
-    int32 read; // 實際讀取的數據點數量
+    int32 read = 1000; // 實際讀取的數據點數量
     char channelNames[2048] = { 0 }; // 儲存通道名稱
     uInt32 numChans = 0; // 儲存通道數量
     int32 sampRate = 12800; // 預設取樣率
@@ -74,8 +74,8 @@ int main(void) {
             // 提取設定值
             string channelType = ini_data[section]["ChanType"]; // 通道類型
             string physicalChannel = ini_data[section]["PhysicalChanName"]; // 實體通道名稱
-            double minVal = stod(ini_data[section]["AI.Min"]); // 最小值
-            double maxVal = stod(ini_data[section]["AI.Max"]); // 最大值
+            float64 minVal = stod(ini_data[section]["AI.Min"]); // 最小值
+            float64 maxVal = stod(ini_data[section]["AI.Max"]); // 最大值
 
             // 根據通道類型創建對應的 DAQmx 通道
             if (channelType == "Analog Input") {
@@ -84,11 +84,15 @@ int main(void) {
                     // 創建電壓通道
                     DAQmxErrChk(DAQmxCreateAIVoltageChan(taskHandle, physicalChannel.c_str(), "", DAQmx_Val_Cfg_Default, minVal, maxVal, DAQmx_Val_Volts, NULL));
                 }
-                /*else if (measType == "Current") {
-                    // 創建電流通道（略）
-                } else if (measType == "Accelerometer") {
-                    // 創建加速計通道（略）
-                }*/
+                else if (measType == "Current") {
+                    float32 shuntResistor = stod(ini_data[section]["AI.CurrentShunt.Resistance"]); // 電流通道的電阻值
+                    DAQmxErrChk(DAQmxCreateAICurrentChan(taskHandle, physicalChannel.c_str(), "", DAQmx_Val_RSE, minVal, maxVal, DAQmx_Val_Amps, DAQmx_Val_Internal, shuntResistor, NULL));
+                }
+                else if (measType == "Accelerometer") {
+                    double sensitivity = stod(ini_data[section]["AI.Accel.Sensitivity"]); // 加速度計靈敏度
+                    double currentExcitVal = stod(ini_data[section]["AI.Excit.Val"]); // 加速度計電流激勵值
+                    DAQmxErrChk(DAQmxCreateAIAccelChan(taskHandle, physicalChannel.c_str(), "", DAQmx_Val_PseudoDiff, minVal, maxVal, DAQmx_Val_AccelUnit_g, sensitivity, DAQmx_Val_mVoltsPerG, DAQmx_Val_Internal, currentExcitVal, NULL));
+                }
             }
         }
         cout << "通道創建完成。" << endl;
@@ -97,7 +101,9 @@ int main(void) {
         vector<string> task_sections = filterSections(ini_data, "DAQmxTask");
         if (!task_sections.empty()) {
             string task_section = task_sections[0]; // 假設只處理第一個 "DAQmxTask" 區段
-            sampRate = stod(ini_data[task_section]["SampClk.Rate"]); // 取樣率
+            // 取樣率
+            double sampRate = stod(ini_data[task_section]["SampClk.Rate"]);
+            int32 intSampRate = static_cast<int32>(sampRate); // 明確轉換
             int sampPerChan = stoi(ini_data[task_section]["SampQuant.SampPerChan"]); // 每通道樣本數
 
             // 配置取樣率
@@ -151,7 +157,7 @@ int main(void) {
             for (int i = 0; i < sampleRate; ++i) {
                 cout << "|";
                 for (int ch = 0; ch < numChannels; ++ch) {
-                    cout << center(to_string(data[ch * sampleRate + i]), 12) << "| ";
+                    cout << center(to_string(data[i * numChannels + ch]), 12) << "| ";
                 }
                 cout << endl;
             }
